@@ -10,17 +10,19 @@ I started with a larger HuggingFace model, then moved to a smaller Ollama model 
 
 * **Operating system:** Fedora
 * **Container runtime:** Podman
-* **RAM:** 15 GiB
+* **RAM:** 16 GiB
 * **CPU cores:** 4
 * **Swap:** 17 GiB
+* **Storage Space:** 1 TB (with 3 Operating Systems Installed (Fedora 43, Kali and Ubuntu 24.04))
 
-## 1. Installed RamaLama
+## Step 1: Install RamaLama
 
 I first checked that RamaLama was installed and verified the version.
 
 ### Command used
 
 ```bash
+sudo dnf install ramalama
 ramalama version
 ```
 
@@ -30,7 +32,11 @@ ramalama version
 ramalama version 0.17.1
 ```
 
-## 2. First model: HuggingFace transport
+![Installation](./screenshots/1-installation.png)
+
+![Version Check](./screenshots/2-version-check.png)
+
+## Step 2: First model: HuggingFace transport
 
 I chose a model from HuggingFace first because I wanted to test the default workflow with a larger model and see how RamaLama handled it.
 
@@ -52,7 +58,7 @@ ramalama pull huggingface://instructlab/merlinite-7b-lab-GGUF/merlinite-7b-lab-Q
 100% |████████████████████████████████████████████████████████████████████████████████████████|    4.07 GB/   4.07 GB   1.51 MB/s   11m 57s
 ```
 
-## 3. First run attempt with the HuggingFace model
+## Step 3: First run attempt with the HuggingFace model
 
 After the model finished downloading, I tried to run it with a simple Fedora-related prompt.
 
@@ -65,6 +71,8 @@ ramalama run huggingface://instructlab/merlinite-7b-lab-GGUF/merlinite-7b-lab-Q4
 ### Result
 
 The run failed with a health-check timeout.
+
+![Successful Pull But Failed To Run Model](./screenshots/3-model-pull-failed.png)
 
 ### Error output
 
@@ -79,7 +87,7 @@ I retried the same command, and it failed again with the same timeout.
 
 At first, I suspected the large model size was the problem. Later, after checking the container logs, I realized the issue was more specific: RamaLama was trying to use a Vulkan-backed path that was not compatible with my Intel HD 4000 graphics device.
 
-## 4. Checked the container runtime
+## Step 4: Checked the container runtime
 
 I wanted to make sure Podman itself was working correctly.
 
@@ -99,7 +107,7 @@ Podman worked correctly, so the issue was not a broken container runtime.
 !... Hello Podman World ...!
 ```
 
-## 5. Checked system resources
+## Step 5: Checked system resources
 
 I also checked my memory and CPU availability.
 
@@ -123,7 +131,7 @@ Swap:           17Gi          0B        17Gi
 
 This showed that I had enough RAM available, so memory alone was not the main issue.
 
-## 6. Inspected the failed RamaLama containers
+## Step 6: Inspected the failed RamaLama containers
 
 I checked the container list and logs to understand the failure more clearly.
 
@@ -158,7 +166,7 @@ llama_model_load: error loading model: Unsupported device
 
 The failure was not just about model size. It was also about backend/device compatibility.
 
-## 7. Removed the failed HuggingFace model
+## Step 7: Removed the failed HuggingFace model
 
 After debugging, I removed the large model and confirmed that only the smaller Ollama model remained.
 
@@ -185,7 +193,7 @@ NAME                              MODIFIED       SIZE
 ollama://library/tinyllama:latest 50 seconds ago 608.16 MB
 ```
 
-## 8. Second model: Ollama transport
+## Step 8: Second model: Ollama transport
 
 I then switched to a smaller model via the Ollama transport.
 
@@ -206,7 +214,7 @@ Downloading tinyllama
 
 This model was much smaller and downloaded quickly.
 
-## 9. First Ollama run attempt
+## Step 9: First Ollama run attempt
 
 I tried running TinyLlama directly first.
 
@@ -231,7 +239,7 @@ ERROR - Command 'health check of container ramalama-qtBP9b8dXz' timed out after 
 
 This confirmed that the issue was not only the model size. It was also how the backend was being selected.
 
-## 10. Forced CPU-only execution
+## Step 10: Forced CPU-only execution
 
 After reviewing the logs, I realized that the machine was trying to use a GPU/Vulkan path that was not compatible with my hardware. I fixed that by forcing CPU-only execution.
 
@@ -266,7 +274,7 @@ This was useful, because it showed me the difference between:
 * a command that runs successfully, and
 * a model that gives a correct and useful answer.
 
-## 11. More CPU-only test prompts
+## Step 11: More CPU-only test prompts
 
 I tested a few simpler prompts to confirm that TinyLlama was working consistently.
 
@@ -296,7 +304,10 @@ echo "Who is Daniel Favour Dohou?" | ramalama run --device=none --ngl 0 ollama:/
 
 The response was incorrect and unrelated to me, which reinforced that smaller models can be fast and lightweight, but they may lack contextual accuracy.
 
-## 12. My comparison and analysis
+![Successful Pull Of Lighter Model](./screenshots/4-tiny-ollama.png)
+
+
+## Step 12: My comparison and analysis
 
 ### HuggingFace model vs Ollama model
 
@@ -310,6 +321,10 @@ This was the most important fix in my experiment.
 
 It forced RamaLama to avoid GPU/Vulkan execution and use the CPU instead. That made the model start successfully on my machine.
 
+![Successful Run Of Heavier Model](./screenshots/6-successful-run-huggingface.png)
+
+![Successful Run Of Heavier Model](./screenshots/7-successful-run-huggingface.png)
+
 ### Trade-offs I observed
 
 * **Large models** can be more capable, but they need more resources and can fail more easily on weaker hardware.
@@ -317,7 +332,7 @@ It forced RamaLama to avoid GPU/Vulkan execution and use the CPU instead. That m
 * **Transport choice** matters, but the underlying hardware and runtime backend matter even more.
 * **CPU-only execution** made the system more compatible with my machine, but likely at the cost of speed and model quality.
 
-## 13. Does this make working with AI boring?
+## Step 13: Does this make working with AI boring?
 
 In a good way, yes — but not completely.
 
@@ -332,7 +347,7 @@ At the same time, I still had to think carefully about:
 
 So my conclusion is that RamaLama makes the **workflow** boring, but not the **thinking**.
 
-## 14. What I learned
+## Step 14: What I learned
 
 This task helped me understand that documentable AI workflows are not only about getting a model to answer a prompt. They are also about:
 
@@ -343,7 +358,15 @@ This task helped me understand that documentable AI workflows are not only about
 
 I also learned that a successful run does not always mean a correct result. Good evaluation still matters.
 
-## 15. Final notes
+## How I Used AI in This Task
+
+I read Ramalama documentation and ran all experiments myself. I used one AI tool as support:
+
+- **ChatGPT** — to help me think through the task structure and deepen my understanding of each experiment. I worked iteratively: run a command, check the output, debugged the fix, run the command again, understand what changed, then move to the next step. ChatGPT helped me understand *why* things behaved the way they did, not just *that* they did.
+
+---
+
+## My Observations And Lessons Learned
 
 For this task, I documented:
 
@@ -358,14 +381,4 @@ I can now clearly say that I explored RamaLama, debugged it on my system, and le
 
 ---
 
-## Files and screenshots to attach
-
-I should attach the following to my final submission:
-
-* screenshots of each terminal step,
-* any saved output files,
-* and this README or blog post link, if required by the issue.
-
-## Short final comment for the issue
-
-I completed the task by installing RamaLama, checking the version, pulling and running a HuggingFace model, debugging the runtime failure, switching to an Ollama model, forcing CPU-only execution, and comparing the outputs and behavior of both transports.
+> Check out my blog post on Hashnode [here](https://dohoudanielfavour.hashnode.dev/how-ramalama-made-working-with-ai-feel-boring-in-a-good-way).

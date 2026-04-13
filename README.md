@@ -331,6 +331,7 @@ It forced RamaLama to avoid GPU/Vulkan execution and use the CPU instead. That m
 * **Smaller models** are easier to run locally, but the answers may be less accurate.
 * **Transport choice** matters, but the underlying hardware and runtime backend matter even more.
 * **CPU-only execution** made the system more compatible with my machine, but likely at the cost of speed and model quality.
+* **AI Hallucinations**: Some models gave off wrong information about the [Four Foundations of Fedora](https://docs.fedoraproject.org/en-US/project/) and other questions that I did ask them, and from repeated tries and observations, I have a hypothesis: The larger the size of the pulled AI model, the lesser the hallucinations by the AI model (I got this from comparing two models: Ollama and Tiny-Ollama)
 
 ## Step 13: Does this make working with AI boring?
 

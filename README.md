@@ -363,7 +363,7 @@ I also learned that a successful run does not always mean a correct result. Good
 
 I read Ramalama documentation and ran all experiments myself. I used one AI tool as support:
 
-- **ChatGPT** — to help me think through the task structure and deepen my understanding of each experiment. I worked iteratively: run a command, check the output, debugged the fix, run the command again, understand what changed, then move to the next step. ChatGPT helped me understand *why* things behaved the way they did, not just *that* they did.
+- **ChatGPT** — to help me think through the task structure and deepen my understanding of each experiment, and to avoid making costly mistakes too. ChatGPT was especially helpful in debugging wrong outputs of commands that I ran while testing, and also, in exploring the limitations of resources of my tri-booted machine (Ubuntu + Kali + Fedora 😅), especially for the absence of NPUs, and the presence of GPUs. Also, I faced issues of AI Hallucination when I pulled different models for this task. ChatGPT helped me think through the reason this happened, and also assisted me in coming up with my hypothesis.
 
 ---
 
